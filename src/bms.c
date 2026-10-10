@@ -28,11 +28,27 @@ void bms_init(BMS *bms) {
     bms->bms_ht = 0;
     bms->msg_age = 42.0f;
     bms->push_timer = 0;
+    bms->ntc_temp = 0.0f;
+    bms->ntc_timer = 0;
+    bms->ntc_valid = false;
     bms->fault_mask = BMSF_NONE;
 }
 
 static inline void set_fault(uint32_t *fault_mask, BMSFaultCode fault_code) {
     *fault_mask |= 1u << (fault_code - 1);
+}
+
+static void check_cell_temps(uint32_t *fault_mask, const CfgBMS *cfg, float lt, float ht) {
+    // Setting high temp threshold to 0 disables both high and low temp checking
+    if (cfg->cell_ht_threshold > 0) {
+        if (ht > cfg->cell_ht_threshold) {
+            set_fault(fault_mask, BMSF_CELL_OVER_TEMP);
+        }
+
+        if (lt < cfg->cell_lt_threshold) {
+            set_fault(fault_mask, BMSF_CELL_UNDER_TEMP);
+        }
+    }
 }
 
 void bms_update(BMS *bms, const CfgBMS *cfg, const Time *time) {
@@ -43,6 +59,22 @@ void bms_update(BMS *bms, const CfgBMS *cfg, const Time *time) {
 
     uint32_t fault_mask = BMSF_NONE;
     const float timeout = 5.0f;
+
+    // Thermistor mode: the only data available is a single cell temperature,
+    // voltage and balance checks are skipped. A missing or out-of-range
+    // reading is reported as a connection fault, same as a lost CAN BMS.
+    if (cfg->ntc.enabled) {
+        if (!bms->ntc_valid || timer_older(time, bms->ntc_timer, timeout)) {
+            if (time_elapsed(time, start, timeout)) {
+                set_fault(&fault_mask, BMSF_CONNECTION);
+            }
+        } else {
+            check_cell_temps(&fault_mask, cfg, bms->ntc_temp, bms->ntc_temp);
+        }
+
+        bms->fault_mask = fault_mask;
+        return;
+    }
 
     // Age the data by the time elapsed since the last push, so that it also
     // goes stale when pushes stop coming (e.g. the lisp loop stops running).
@@ -66,16 +98,7 @@ void bms_update(BMS *bms, const CfgBMS *cfg, const Time *time) {
         set_fault(&fault_mask, BMSF_CELL_OVER_VOLTAGE);
     }
 
-    // Setting high temp threshold to 0 disables both high and low temp checking
-    if (cfg->cell_ht_threshold > 0) {
-        if (bms->cell_ht > cfg->cell_ht_threshold) {
-            set_fault(&fault_mask, BMSF_CELL_OVER_TEMP);
-        }
-
-        if (bms->cell_lt < cfg->cell_lt_threshold) {
-            set_fault(&fault_mask, BMSF_CELL_UNDER_TEMP);
-        }
-    }
+    check_cell_temps(&fault_mask, cfg, bms->cell_lt, bms->cell_ht);
 
     if (cfg->bms_ht_threshold > 0 && bms->bms_ht > cfg->bms_ht_threshold) {
         set_fault(&fault_mask, BMSF_OVER_TEMP);
@@ -86,6 +109,44 @@ void bms_update(BMS *bms, const CfgBMS *cfg, const Time *time) {
     }
 
     bms->fault_mask = fault_mask;
+}
+
+bool bms_ntc_update(BMS *bms, const CfgNTC *cfg, float voltage, const Time *time, float *temp) {
+    // The pull-up goes to the same 3.3 V rail the ADC is referenced to, so the
+    // reading is ratiometric.
+    const float v_ref = 3.3f;
+    // Readings this close to the rails mean an open (~3.3 V) or shorted (~0 V)
+    // sensor. Also rejects the negative value returned for a missing channel.
+    const float v_margin = 0.05f;
+    // Exponential smoothing weight of a new sample, the loop runs at ~1 Hz.
+    const float alpha = 0.3f;
+
+    if (voltage < v_margin || voltage > v_ref - v_margin || cfg->r_nominal <= 0.0f ||
+        cfg->r_pullup <= 0.0f || cfg->beta == 0) {
+        return false;
+    }
+
+    // Voltage divider, NTC on the low side:
+    //   V = Vref * R_ntc / (R_pullup + R_ntc)  =>  R_ntc = R_pullup * V / (Vref - V)
+    const float r_ntc = cfg->r_pullup * voltage / (v_ref - voltage);
+
+    // Beta form of the Steinhart-Hart equation (T in Kelvin, T0 = 25 °C):
+    //   1 / T = 1 / T0 + ln(R_ntc / R_nominal) / Beta
+    const float t_kelvin = 1.0f / (1.0f / 298.15f + logf(r_ntc / cfg->r_nominal) / cfg->beta);
+    const float t = t_kelvin - 273.15f + cfg->temp_offset;
+
+    // Restart the filter from the raw value if there was no valid reading
+    // recently (first reading, or after a sensor fault).
+    if (!bms->ntc_valid || timer_older(time, bms->ntc_timer, 5.0f)) {
+        bms->ntc_temp = t;
+    } else {
+        bms->ntc_temp += alpha * (t - bms->ntc_temp);
+    }
+    timer_refresh(time, &bms->ntc_timer);
+    bms->ntc_valid = true;
+
+    *temp = bms->ntc_temp;
+    return true;
 }
 
 bool bms_is_fault(const BMS *bms, BMSFaultCode fault_code) {

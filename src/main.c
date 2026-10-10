@@ -2589,6 +2589,35 @@ static lbm_value ext_bms(lbm_value *args, lbm_uint argn) {
     return d->float_conf.bms.enabled ? VESC_IF->lbm_enc_sym_true : VESC_IF->lbm_enc_sym_nil;
 }
 
+// Called from Lisp with the voltage measured on the battery thermistor divider.
+// Converts it to temperature, stores it for the BMS alerts and returns it in °C.
+// Returns nil if the thermistor is disabled or the reading is out of range.
+//
+// Called without arguments, returns whether the thermistor is enabled.
+static lbm_value ext_ntc(lbm_value *args, lbm_uint argn) {
+    Data *d = (Data *) ARG;
+    const CfgNTC *cfg = &d->float_conf.bms.ntc;
+
+    if (!cfg->enabled) {
+        return VESC_IF->lbm_enc_sym_nil;
+    }
+
+    if (argn < 1) {
+        return VESC_IF->lbm_enc_sym_true;
+    }
+
+    if (!VESC_IF->lbm_is_number(args[0])) {
+        return VESC_IF->lbm_enc_sym_nil;
+    }
+
+    float temp;
+    if (!bms_ntc_update(&d->bms, cfg, VESC_IF->lbm_dec_as_float(args[0]), &d->time, &temp)) {
+        return VESC_IF->lbm_enc_sym_nil;
+    }
+
+    return VESC_IF->lbm_enc_float(temp);
+}
+
 // Used to send the current or default configuration to VESC Tool.
 static int get_cfg(uint8_t *buffer, bool is_default) {
     Data *d = (Data *) ARG;
@@ -2712,6 +2741,7 @@ INIT_FUN(lib_info *info) {
     VESC_IF->set_app_data_handler(on_command_received);
     VESC_IF->lbm_add_extension("ext-set-fw-version", ext_set_fw_version);
     VESC_IF->lbm_add_extension("ext-bms", ext_bms);
+    VESC_IF->lbm_add_extension("ext-ntc", ext_ntc);
 
     return true;
 }

@@ -1119,6 +1119,108 @@ p, li { white-space: pre-wrap; }
             <suffix> °C</suffix>
             <vTx>2</vTx>
         </bms.bms_ht_threshold>
+        <bms.ntc.enabled>
+            <longName>Enable Battery Thermistor</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Read an NTC thermistor wired to ADC3 (NTC to GND, pull-up resistor to 3.3 V) as the battery temperature. On hardware where ADC3 is on the UART RX pin, make sure nothing else (e.g. the UART app) is using that pin.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The temperature is written into the VESC BMS data as the cell temperature, so telemetry apps can display it.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If BMS Integration is also enabled, the Cell High / Low Temp thresholds are checked against this temperature. A CAN BMS is not used in this mode, so voltage and balance alerts are unavailable. A disconnected or shorted sensor is reported as a BMS Connection Error.&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Intended for packs without a CAN BMS (e.g. charge-only BMS).&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Note: Board restart required.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>CFG_DFLT_BMS_NTC_ENABLED</cDefine>
+            <valInt>0</valInt>
+        </bms.ntc.enabled>
+        <bms.ntc.r_nominal>
+            <longName>Thermistor Nominal Resistance</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Thermistor resistance at 25 °C (e.g. 10 kΩ for a 10k NTC).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>CFG_DFLT_BMS_NTC_R_NOMINAL</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>200</maxDouble>
+            <minDouble>1</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>1</stepDouble>
+            <valDouble>10</valDouble>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <suffix> kΩ</suffix>
+            <vTx>7</vTx>
+        </bms.ntc.r_nominal>
+        <bms.ntc.beta>
+            <longName>Thermistor Beta</longName>
+            <type>2</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Beta (B) coefficient of the thermistor from its datasheet, typically specified as B25/50 or B25/85 (e.g. 3950 K).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>CFG_DFLT_BMS_NTC_BETA</cDefine>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxInt>6000</maxInt>
+            <minInt>2000</minInt>
+            <showDisplay>0</showDisplay>
+            <stepInt>10</stepInt>
+            <valInt>3950</valInt>
+            <suffix> K</suffix>
+            <vTx>3</vTx>
+        </bms.ntc.beta>
+        <bms.ntc.r_pullup>
+            <longName>Thermistor Pull-up Resistance</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Resistance of the pull-up resistor between ADC3 and 3.3 V.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>CFG_DFLT_BMS_NTC_R_PULLUP</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>200</maxDouble>
+            <minDouble>1</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>1</stepDouble>
+            <valDouble>10</valDouble>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <suffix> kΩ</suffix>
+            <vTx>7</vTx>
+        </bms.ntc.r_pullup>
+        <bms.ntc.temp_offset>
+            <longName>Thermistor Temperature Offset</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Calibration offset added to the measured temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>CFG_DFLT_BMS_NTC_TEMP_OFFSET</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>10</maxDouble>
+            <minDouble>-10</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>0.5</stepDouble>
+            <valDouble>0</valDouble>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <suffix> °C</suffix>
+            <vTx>7</vTx>
+        </bms.ntc.temp_offset>
         <haptic.duty.frequency>
             <longName>Warning Audible Frequency</longName>
             <type>2</type>
@@ -4206,6 +4308,11 @@ p, li { white-space: pre-wrap; }
         <ser>bms.cell_ht_threshold</ser>
         <ser>bms.cell_lt_threshold</ser>
         <ser>bms.bms_ht_threshold</ser>
+        <ser>bms.ntc.enabled</ser>
+        <ser>bms.ntc.r_nominal</ser>
+        <ser>bms.ntc.beta</ser>
+        <ser>bms.ntc.r_pullup</ser>
+        <ser>bms.ntc.temp_offset</ser>
         <ser>meta.is_default</ser>
     </SerOrder>
     <Grouping>
@@ -4474,6 +4581,12 @@ p, li { white-space: pre-wrap; }
                     <param>bms.cell_ht_threshold</param>
                     <param>bms.cell_lt_threshold</param>
                     <param>bms.bms_ht_threshold</param>
+                    <param>::sep::Battery Thermistor (ADC3)</param>
+                    <param>bms.ntc.enabled</param>
+                    <param>bms.ntc.r_nominal</param>
+                    <param>bms.ntc.beta</param>
+                    <param>bms.ntc.r_pullup</param>
+                    <param>bms.ntc.temp_offset</param>
                 </subgroupParams>
             </subgroup>
         </group>

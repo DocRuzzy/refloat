@@ -44,11 +44,25 @@ typedef struct {
     float msg_age;
     time_t push_timer;
 
+    float ntc_temp;
+    time_t ntc_timer;
+    bool ntc_valid;
+
     uint32_t fault_mask;
 } BMS;
 
 void bms_init(BMS *bms);
 
 void bms_update(BMS *bms, const CfgBMS *cfg, const Time *time);
+
+/**
+ * Converts the voltage measured on the thermistor divider (NTC to GND, pull-up
+ * to 3.3 V) to a filtered temperature in °C, stores it for the BMS alerts and
+ * writes it to `temp`.
+ *
+ * Returns false and leaves the stored temperature untouched if the voltage is
+ * out of range (open or shorted sensor, or the ADC channel doesn't exist).
+ */
+bool bms_ntc_update(BMS *bms, const CfgNTC *cfg, float voltage, const Time *time, float *temp);
 
 bool bms_is_fault(const BMS *bms, BMSFaultCode fault_code);

@@ -224,12 +224,21 @@ typedef struct {
 
 typedef struct {
     bool enabled;
+    float r_nominal;  // kOhm at 25 °C
+    float r_pullup;  // kOhm, to 3.3 V
+    uint16_t beta;  // K
+    float temp_offset;  // °C
+} CfgNTC;
+
+typedef struct {
+    bool enabled;
     float cell_lv_threshold;
     float cell_hv_threshold;
     float cell_balance_threshold;
     int8_t cell_lt_threshold;
     int8_t cell_ht_threshold;
     int8_t bms_ht_threshold;
+    CfgNTC ntc;
 } CfgBMS;
 
 typedef struct {
