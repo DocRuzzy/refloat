@@ -31,6 +31,7 @@ void bms_init(BMS *bms) {
     bms->ntc_temp = 0.0f;
     bms->ntc_timer = 0;
     bms->ntc_valid = false;
+    bms->batt_temp = BMS_TEMP_NONE;
     bms->fault_mask = BMSF_NONE;
 }
 
@@ -52,19 +53,23 @@ static void check_cell_temps(uint32_t *fault_mask, const CfgBMS *cfg, float lt, 
 }
 
 void bms_update(BMS *bms, const CfgBMS *cfg, const Time *time) {
+    const float timeout = 5.0f;
+
+    bool ntc_fresh = bms->ntc_valid && !timer_older(time, bms->ntc_timer, timeout);
+    bms->batt_temp = cfg->ntc.enabled && ntc_fresh ? bms->ntc_temp : BMS_TEMP_NONE;
+
     if (!cfg->enabled) {
         bms->fault_mask = BMSF_NONE;
         return;
     }
 
     uint32_t fault_mask = BMSF_NONE;
-    const float timeout = 5.0f;
 
     // Thermistor mode: the only data available is a single cell temperature,
     // voltage and balance checks are skipped. A missing or out-of-range
     // reading is reported as a connection fault, same as a lost CAN BMS.
     if (cfg->ntc.enabled) {
-        if (!bms->ntc_valid || timer_older(time, bms->ntc_timer, timeout)) {
+        if (!ntc_fresh) {
             if (time_elapsed(time, start, timeout)) {
                 set_fault(&fault_mask, BMSF_CONNECTION);
             }

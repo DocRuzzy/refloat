@@ -1130,8 +1130,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Read an NTC thermistor wired to ADC3 (NTC to GND, pull-up resistor to 3.3 V) as the battery temperature. On hardware where ADC3 is on the UART RX pin, make sure nothing else (e.g. the UART app) is using that pin.&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The temperature is written into the VESC BMS data as the cell temperature, so telemetry apps can display it.&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;If BMS Integration is also enabled, the Cell High / Low Temp thresholds are checked against this temperature. A CAN BMS is not used in this mode, so voltage and balance alerts are unavailable. A disconnected or shorted sensor is reported as a BMS Connection Error.&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Intended for packs without a CAN BMS (e.g. charge-only BMS).&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Note: Board restart required.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Intended for packs without a CAN BMS (e.g. charge-only BMS).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
             <cDefine>CFG_DFLT_BMS_NTC_ENABLED</cDefine>
             <valInt>0</valInt>
         </bms.ntc.enabled>
@@ -4308,12 +4307,12 @@ p, li { white-space: pre-wrap; }
         <ser>bms.cell_ht_threshold</ser>
         <ser>bms.cell_lt_threshold</ser>
         <ser>bms.bms_ht_threshold</ser>
+        <ser>meta.is_default</ser>
         <ser>bms.ntc.enabled</ser>
         <ser>bms.ntc.r_nominal</ser>
         <ser>bms.ntc.beta</ser>
         <ser>bms.ntc.r_pullup</ser>
         <ser>bms.ntc.temp_offset</ser>
-        <ser>meta.is_default</ser>
     </SerOrder>
     <Grouping>
         <group>

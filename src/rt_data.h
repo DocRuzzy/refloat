@@ -54,7 +54,8 @@
     S(imu.roll, "roll")                                                                            \
     S(footpad.adc_left, "adc_left")                                                                \
     S(footpad.adc_right, "adc_right")                                                              \
-    S(remote.input, "remote.input")
+    S(remote.input, "remote.input")                                                                \
+    S(bms.batt_temp, "batt_temp")
 
 #define RT_DATA_RUNTIME_ITEMS(S, R)                                                                \
     R(setpoint, "setpoint")                                                                        \

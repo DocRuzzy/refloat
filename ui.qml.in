@@ -2194,6 +2194,7 @@ Item {
         ["batt_current", {"name": "Battery Current", "color": "#cf44cd", "visible": false}],
         ["mosfet_temp", {"name": "Controller Temp", "color": "#ddae68", "visible": false}],
         ["motor_temp", {"name": "Motor Temp", "color": "#88bb93", "visible": false}],
+        ["batt_temp", {"name": "Battery Temp", "color": "#d1606f", "visible": false}],
         ["roll", {"name": "Roll", "color": "#c68f7e", "visible": false}],
         ["adc_left", {"name": "Left ADC Voltage", "color": "#69aad7", "visible": false}],
         ["adc_right", {"name": "Right ADC Voltage", "color": "#4a8772", "visible": false}],
@@ -7459,6 +7460,7 @@ Item {
                 }
 
                 VerticalValue {
+                    id: controllerTemp
                     anchors.left: motorTemp.right
                     labelText: "controller"
                     unit: "°C"
@@ -7466,11 +7468,21 @@ Item {
                     value: state.rtData["mosfet_temp"]
                 }
 
+                // Battery thermistor, the package sends -281 when there's no reading
+                VerticalValue {
+                    id: batteryTemp
+                    anchors.left: controllerTemp.right
+                    labelText: "battery"
+                    unit: "°C"
+                    value: state.rtData["batt_temp"]
+                    visible: value > -273
+                }
+
                 StatusText {
                     id: statusText
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: parent.width - 4 * parent.verticalValueItemWidth
+                    width: parent.width - (batteryTemp.visible ? 6 : 4) * parent.verticalValueItemWidth
                     height: parent.height * 0.83
                     globState: state
                 }

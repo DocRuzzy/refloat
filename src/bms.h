@@ -35,6 +35,9 @@ typedef enum {
     BMSF_CELL_BALANCE = 7
 } BMSFaultCode;
 
+// Placeholder for "no temperature" (realtime data can't carry NaN)
+#define BMS_TEMP_NONE -281.0f
+
 typedef struct {
     float cell_lv;
     float cell_hv;
@@ -47,6 +50,8 @@ typedef struct {
     float ntc_temp;
     time_t ntc_timer;
     bool ntc_valid;
+    // Battery temperature for realtime data, BMS_TEMP_NONE when unavailable
+    float batt_temp;
 
     uint32_t fault_mask;
 } BMS;

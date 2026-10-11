@@ -1144,6 +1144,36 @@ static void aux_thd(void *arg) {
     }
 }
 
+// Config signature of the upstream Refloat 1.3.0 release.
+#define REFLOATCONFIG_SIGNATURE_1_3_0 421162011
+
+// Loads a config stored by upstream Refloat 1.3.0, which only lacks the battery
+// thermistor settings. Those are serialized at the very end, so the 1.3.0
+// layout is an exact prefix of the current one: swap the signature,
+// deserialize, and put the thermistor settings to their defaults (the bytes
+// read for them are just the zero padding after the old config).
+static bool migrate_cfg_1_3_0(uint8_t *buffer, RefloatConfig *config) {
+    int32_t ind = 0;
+    if (buffer_get_uint32(buffer, &ind) != REFLOATCONFIG_SIGNATURE_1_3_0) {
+        return false;
+    }
+
+    ind = 0;
+    buffer_append_uint32(buffer, REFLOATCONFIG_SIGNATURE, &ind);
+    if (!confparser_deserialize_refloatconfig(buffer, config)) {
+        return false;
+    }
+
+    config->bms.ntc.enabled = CFG_DFLT_BMS_NTC_ENABLED;
+    config->bms.ntc.r_nominal = CFG_DFLT_BMS_NTC_R_NOMINAL;
+    config->bms.ntc.beta = CFG_DFLT_BMS_NTC_BETA;
+    config->bms.ntc.r_pullup = CFG_DFLT_BMS_NTC_R_PULLUP;
+    config->bms.ntc.temp_offset = CFG_DFLT_BMS_NTC_TEMP_OFFSET;
+
+    log_msg("Migrated config from Refloat 1.3.0.");
+    return true;
+}
+
 static void read_cfg_from_eeprom(Data *d) {
     uint32_t words = (SERIALIZED_CONFIG_LENGTH - 1) / 4 + 1;
     uint32_t *buffer = VESC_IF->malloc(words * sizeof(uint32_t));
@@ -1163,7 +1193,8 @@ static void read_cfg_from_eeprom(Data *d) {
     }
 
     if (read_ok) {
-        if (!confparser_deserialize_refloatconfig((uint8_t *) buffer, &d->float_conf)) {
+        if (!confparser_deserialize_refloatconfig((uint8_t *) buffer, &d->float_conf) &&
+            !migrate_cfg_1_3_0((uint8_t *) buffer, &d->float_conf)) {
             log_error("Failed to deserialize config, using defaults.");
             confparser_set_defaults_refloatconfig(&d->float_conf);
         }

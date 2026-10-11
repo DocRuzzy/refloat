@@ -15,16 +15,26 @@
 
 (defun ntc-loop () {
     (var err-print-time nil)
+    (var was-enabled nil)
     (loopwhile t {
         (var res (trap {
-            ; get-adc channel 2 is ADC3
-            (var temp (ext-ntc (get-adc 2)))
-            (if temp
-                (ntc-publish temp)
-                ; Disabled, open or shorted sensor: report no temperatures
-                ; rather than leaving a stale value in place.
-                (set-bms-val 'bms-temp-adc-num 0)
-            )
+            ; Polled every loop so enabling / disabling doesn't need a restart.
+            ; While disabled, leave the BMS data alone (a CAN BMS may own it).
+            (var enabled (ext-ntc))
+            (if enabled {
+                ; get-adc channel 2 is ADC3
+                (var temp (ext-ntc (get-adc 2)))
+                (if temp
+                    (ntc-publish temp)
+                    ; Open or shorted sensor: report no temperatures rather
+                    ; than leaving a stale value in place.
+                    (set-bms-val 'bms-temp-adc-num 0)
+                )
+            } {
+                ; Just disabled: clear what we published
+                (if was-enabled (set-bms-val 'bms-temp-adc-num 0))
+            })
+            (setq was-enabled enabled)
         }))
 
         (if (and (eq (first res) 'exit-error)
